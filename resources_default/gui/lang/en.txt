@@ -1,0 +1,26 @@
+Lang
+
+programName = "New Program"
+programVersion = "Version: 0.0"
+programNameVersion = "\$programName\ \n\$programVersion\ "
+
+startGame = "Start"
+
+settingsMenu = "Settings Menu"
+closeMenu = "Exit"
+
+setKeybind = "Set Key Bind"
+setKeybindActive = "Stop Binding"
+
+clearBinding = "Clear Binding"
+
+clearGUI = "Clear"
+
+bind:Example = "This is a Keybind"
+
+testText = "
+	Hello
+\n	text
+\n	new Line"
+
+space = " "

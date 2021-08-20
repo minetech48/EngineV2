@@ -1,0 +1,29 @@
+GUI;
+
+{Menu(MainMenu):
+	
+	elements:[
+		{Button(-150, -70, 300, 60):
+			alignment:center;
+			
+			text:startGame;
+			
+			onClick:[GameStart, GUIClear, GUIShow\\Game]
+		}
+		#{Button(-150, 0, 300, 60):
+			alignment:center;
+			
+			text:settingsMenu;
+			
+			onClick:GUIShow\\SettingsMenu;
+		}#
+		
+		{Button(resetButton, 5, 5, 50, 20):
+			font:secondary;
+			
+			text:reset;
+			
+			onClick:GUIReset;
+		}
+	]
+}
