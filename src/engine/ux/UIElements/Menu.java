@@ -98,7 +98,7 @@ public class Menu extends UIElement {
 		p.y-= getY();
 		
 		UIElement element;
-		for (int i = elements.size()-1; i > 0; i--) {
+		for (int i = elements.size()-1; i >= 0; i--) {
 			element = elements.get(i);
 			
 			hovered = element.checkHover(p);
