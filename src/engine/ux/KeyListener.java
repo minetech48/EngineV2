@@ -2,8 +2,8 @@ package engine.ux;
 
 public interface KeyListener {
 	
-	public void keyPressed(String keyText);
+	public void keyPressed(String keyText, int keyCode, int modifiers);
 	
-	public void keyReleased(String keyText);
+	public void keyReleased(String keyText, int keyCode, int modifiers);
 	
 }

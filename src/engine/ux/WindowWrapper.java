@@ -112,7 +112,7 @@ public class WindowWrapper extends Menu {
 					keysDown.add(KeyEvent.getKeyText(e.getKeyCode()));
 					
 					for (engine.ux.KeyListener listener : keyListeners) {
-						listener.keyPressed(KeyEvent.getKeyText(e.getKeyCode()));
+						listener.keyPressed(KeyEvent.getKeyText(e.getKeyCode()), e.getKeyCode(), e.getModifiers());
 					}
 				}
 			}
@@ -123,7 +123,7 @@ public class WindowWrapper extends Menu {
 					keysDown.remove(keyText);
 					
 					for (engine.ux.KeyListener listener : keyListeners) {
-						listener.keyReleased(KeyEvent.getKeyText(e.getKeyCode()));
+						listener.keyReleased(KeyEvent.getKeyText(e.getKeyCode()), e.getKeyCode(), e.getModifiers());
 					}
 				}
 			}
