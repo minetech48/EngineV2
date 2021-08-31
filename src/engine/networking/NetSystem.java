@@ -15,6 +15,7 @@ public class NetSystem {
 	
 	private static int currentClientID;
 	private static Map<Integer, Client> clients;
+	protected static Map<Socket, Client> socketClientMap;
 	
 	public static void initialize() {}
 	
@@ -64,7 +65,10 @@ public class NetSystem {
 	
 	//serverside
 	public static Client getClientConnection(Socket socket) {
-		return new Client(socket, false);
+		if (socketClientMap.containsKey(socket))
+			return socketClientMap.get(socket);
+		else
+			return new Client(socket, false);
 	}
 	public static Client getClientConnection(Integer ID) {
 		if (clients == null) return null;
@@ -72,6 +76,9 @@ public class NetSystem {
 		return clients.get(ID);
 	}
 	
+	public static int registerNewClient(Socket socket) {
+		return registerClient(getClientConnection(socket));
+	}
 	public static int registerClient(Client client) {
 		client.clientID = currentClientID++;
 		

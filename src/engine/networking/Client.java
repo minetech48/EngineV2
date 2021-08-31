@@ -74,6 +74,8 @@ public class Client {
 				}
 			}
 		}.start();
+		
+		NetSystem.socketClientMap.put(socket, this);
 	}
 	public void update() {
 		synchronized (out) {
