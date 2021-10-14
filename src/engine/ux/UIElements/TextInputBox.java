@@ -2,6 +2,7 @@ package engine.ux.UIElements;
 
 import java.awt.event.KeyEvent;
 
+@Deprecated
 public class TextInputBox extends Button {
 	
 	private String emptyText;

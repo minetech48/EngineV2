@@ -87,6 +87,9 @@ public class UIElement {
 		
 		return false;
 	}
+	public boolean keyPressed(String keyText, int modifiers) {
+		return true;
+	}
 	
 	private int getConstraintX(UIElement parent) {
 		switch(constraint) {

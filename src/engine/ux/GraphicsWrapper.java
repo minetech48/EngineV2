@@ -1,13 +1,6 @@
 package engine.ux;
 
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Image;
+import java.awt.*;
 
 import engine.util.FileIO;
 import engine.util.StringReader;
@@ -144,7 +137,7 @@ public class GraphicsWrapper {
 //				case '\\':
 //					break;
 				case 'n':
-					y+=getTextLineHeight(graphics.getFontMetrics());
+					y+=getTextLineHeight();
 					x = xBegin;
 					break;
 				case 'c':
@@ -171,7 +164,7 @@ public class GraphicsWrapper {
 				}
 				continue;
 			}else if (c == '\n') {
-				y+=getTextLineHeight(graphics.getFontMetrics());
+				y+=getTextLineHeight();
 				x = xBegin;
 			}
 			
@@ -183,8 +176,8 @@ public class GraphicsWrapper {
 		graphics.drawString(String.valueOf(c), x, y);
 	}
 	
-	public int getTextLineHeight(FontMetrics font) {
-		return font.getAscent() + font.getDescent();
+	public int getTextLineHeight() {
+		return graphics.getFontMetrics().getAscent() + graphics.getFontMetrics().getDescent();
 	}
 	
 	public Dimension getTextSize(String text) {

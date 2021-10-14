@@ -98,7 +98,7 @@ public class WindowWrapper extends Menu {
 				
 				if (GUI.focusedElement != null) {
 					if (e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) {
-						if (GUI.focusedElement.keyPressed((char) keyCode, e.getModifiers())) {
+						if (GUI.focusedElement.keyPressed(KeyEvent.getKeyText(keyCode), e.getModifiers())) {
 							return;
 						}
 					}else{
