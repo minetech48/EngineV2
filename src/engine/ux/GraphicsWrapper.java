@@ -144,7 +144,7 @@ public class GraphicsWrapper {
 //				case '\\':
 //					break;
 				case 'n':
-					y+=graphics.getFontMetrics().getAscent();
+					y+=getTextLineHeight(graphics.getFontMetrics());
 					x = xBegin;
 					break;
 				case 'c':
@@ -171,7 +171,7 @@ public class GraphicsWrapper {
 				}
 				continue;
 			}else if (c == '\n') {
-				y+=graphics.getFontMetrics().getAscent();
+				y+=getTextLineHeight(graphics.getFontMetrics());
 				x = xBegin;
 			}
 			
@@ -181,6 +181,10 @@ public class GraphicsWrapper {
 	}
 	private void drawChar(char c, int x, int y) {
 		graphics.drawString(String.valueOf(c), x, y);
+	}
+	
+	public int getTextLineHeight(FontMetrics font) {
+		return font.getAscent() + font.getDescent();
 	}
 	
 	public Dimension getTextSize(String text) {
