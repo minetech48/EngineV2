@@ -53,7 +53,7 @@ public class FileIO {
 		
 		while (in.hasNext()) {
 			toReturn.append(in.nextLine());
-			toReturn.append("\n");
+			toReturn.append('\n');
 		}
 		
 		return toReturn.toString();

@@ -66,8 +66,8 @@ public class GraphicsWrapper {
 	
 	public void drawPolygon(int... points) {
 		drawLine(points[0], 
-				 points[1], 
-				 points[2], 
+				 points[1],
+				 points[2],
 				 points[3]);
 		
 		for (int i = 2; i < points.length/2; i+=2) {
@@ -170,6 +170,9 @@ public class GraphicsWrapper {
 					break;
 				}
 				continue;
+			}else if (c == '\n') {
+				y+=graphics.getFontMetrics().getAscent();
+				x = xBegin;
 			}
 			
 			drawChar(c, x, y);

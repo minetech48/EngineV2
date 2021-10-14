@@ -16,17 +16,17 @@ public class ScriptHandler {
 	}
 	
 	//methods
-	public static void execute(File file) {
+	public static LuaValue execute(File file) {
 		Logger.log("Executing Lua Script: " + file.getPath());
 		
-		execute(globals.loadfile(file.getPath()));
+		return execute(globals.loadfile(file.getPath()));
 	}
-	public static void execute(String script) {
+	public static LuaValue execute(String script) {
 		Logger.log("Executing Lua Script: " + script);
 		
-		execute(globals.load(script));
+		return execute(globals.load(script));
 	}
-	public static void execute(LuaValue script) {
-		script.call();
+	public static LuaValue execute(LuaValue script) {
+		return script.call();
 	}
 }

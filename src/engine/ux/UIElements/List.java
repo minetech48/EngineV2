@@ -113,7 +113,7 @@ public class List extends Button {
 	
 	public String getReturnValue() {
 		if (activeIndex < 0 || getList().size() < activeIndex)
-			return null;
+			return "";
 		
 		return getList().get(activeIndex);
 	}
