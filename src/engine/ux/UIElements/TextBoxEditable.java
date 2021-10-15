@@ -1,17 +1,24 @@
 package engine.ux.UIElements;
 
+import engine.core.Logger;
 import engine.util.vector.Vec2i;
 import engine.ux.GUI;
 import engine.ux.GraphicsWrapper;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class TextBoxEditable extends UIElement {
 	
 	ArrayList<StringBuilder> contents;
 	Vec2i cursorPos;
-	int tempCursorX;
+	int tempCursorX, y;
 	
 	public TextBoxEditable(String[] args) {
 		super(args);
@@ -43,28 +50,74 @@ public class TextBoxEditable extends UIElement {
 			case 17:
 				return true;
 			case 8://backspace
-				if (currentLine.length() > 0) {
-					if (cursorPos.x == 0) {
-						//TODO: move current line up, deleting newline char
-	//					if (cursorPos.y > 0)
-	//						currentLine.deleteCharAt(cursorPos.x - 1);
+				if (cursorPos.x == 0) {
+					if (cursorPos.y > 0) {
+						contents.remove(cursorPos.y);
+						
+						cursorPos.y--;
+						cursorPos.x = contents.get(cursorPos.y).length();
+						
+						contents.get(cursorPos.y).append(currentLine);
 					}
-					else {
-						currentLine.deleteCharAt(cursorPos.x - 1);
-						cursorPos.x--;
-						cursorMoved(true);
-					}
+				}
+				else {
+					currentLine.deleteCharAt(cursorPos.x - 1);
+					cursorPos.x--;
+					cursorMoved(true);
 				}
 				break;
 			case 127://delete
-				currentLine.deleteCharAt(cursorPos.x);
+				if (cursorPos.x == currentLine.length() && cursorPos.y < contents.size()-1) {
+					currentLine.append(contents.get(cursorPos.y+1));
+					
+					contents.remove(cursorPos.y+1);
+				}else if (cursorPos.x < currentLine.length())
+					currentLine.deleteCharAt(cursorPos.x);
 				break;
 			case 10://enter
-				//TODO: move line down
-				contents.add(cursorPos.y+1, new StringBuilder(""));
+				contents.add(cursorPos.y+1, new StringBuilder(currentLine.substring(cursorPos.x)));
+				currentLine.delete(cursorPos.x, currentLine.length());
+				
 				cursorPos.y++;
+				cursorPos.x = 0;
 				cursorMoved(false);
 				break;
+				
+			case 24://ctrl + x
+				break;
+			case 3://ctrl + c
+				break;
+			case 22://ctrl + v
+				try {
+					Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+					
+					if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+						String text = t.getTransferData(DataFlavor.stringFlavor).toString();
+						
+						String[] split = text.split("\n");
+						
+						
+						for (String str : split) {
+							contents.get(cursorPos.y).insert(cursorPos.x, str);
+							
+							cursorPos.x+= str.length();
+							cursorMoved(true);
+							
+							keyPressed((char) 10, 0);
+						}
+						keyPressed((char) 8, 0);
+						
+					}
+				} catch (UnsupportedFlavorException | IOException e) {
+					Logger.log(e);
+				}
+				break;
+				
+			case 26://ctrl + z
+				break;
+			case 27://ctrl + y
+				break;
+				
 			default:
 				if ((modifiers & KeyEvent.SHIFT_MASK) == KeyEvent.SHIFT_MASK)
 					currentLine.insert(cursorPos.x, c);
@@ -75,7 +128,7 @@ public class TextBoxEditable extends UIElement {
 				cursorMoved(true);
 		}
 		
-//		System.out.println((int) c);
+		System.out.println((int) c);
 		
 		return true;
 	}
@@ -100,6 +153,12 @@ public class TextBoxEditable extends UIElement {
 				break;
 		}
 		
+		cursorMoved(horizontal);
+		
+		return true;
+	}
+	
+	public void cursorMoved(boolean horizontal) {
 		if (horizontal) {
 			tempCursorX = -1;
 			
@@ -116,24 +175,18 @@ public class TextBoxEditable extends UIElement {
 				if (cursorPos.y < contents.size())
 					cursorPos.x = 0;
 				else
-					cursorPos.x--;
+					cursorPos.x = contents.get(cursorPos.y-1).length();
 			}
 		}
 		
-		cursorMoved(horizontal);
-		
-		return true;
-	}
-	
-	public void cursorMoved(boolean horizontal) {
 		if (cursorPos.y < 0)
-			cursorPos.y++;
+			cursorPos.y = 0;
 		if (cursorPos.y > contents.size()-1)
-			cursorPos.y--;
+			cursorPos.y = contents.size()-1;
 		
 		if (!horizontal) {
-			if (cursorPos.x > contents.get(cursorPos.y).length()) {
-				tempCursorX = cursorPos.x;
+			if (cursorPos.x >= contents.get(cursorPos.y).length()) {
+				tempCursorX = Math.max(tempCursorX, cursorPos.x);
 				cursorPos.x = contents.get(cursorPos.y).length();
 			}else if (tempCursorX > -1)
 				cursorPos.x = tempCursorX;
@@ -141,8 +194,42 @@ public class TextBoxEditable extends UIElement {
 	}
 	
 	public void click() {
-		cursorPos.x = 0;
-		cursorPos.y = 0;
+		if (GUI.getFont("editorFont") != null)
+			GUI.graphics.setFont(GUI.getFont("editorFont"));
+		else
+			GUI.graphics.setFont(GUI.getFont("primary"));
+		
+		//vertical
+		cursorPos.y = ((GUI.window.mousePosition.y - getY()) / GUI.graphics.getTextLineHeight());
+		y = cursorPos.y;
+		
+		cursorMoved(false);
+		
+		//horizontal
+		int width = 0, mousePosX = GUI.window.mousePosition.x - getX(), difference = 0;
+		boolean set = false;
+		for (int x = 0; x < contents.get(cursorPos.y).length(); x++) {
+			difference = width;
+			width = GUI.graphics.getTextSize(contents.get(cursorPos.y).substring(0, x+1)).width;
+			difference = width - difference;
+			
+			if (width >= mousePosX) {
+				cursorPos.x = x;
+				
+				if (width < mousePosX + difference/2) {
+					cursorPos.x++;
+				}
+				
+				set = true;
+				break;
+			}
+		}
+		
+		if (!set) {
+			cursorPos.x = contents.get(cursorPos.y).length();
+		}
+		
+		cursorMoved(true);
 	}
 	
 	public void draw() {drawTextBoxEditable(this);}
@@ -158,10 +245,10 @@ public class TextBoxEditable extends UIElement {
 		else
 			element.cursorPos.x = -1;
 		
-//		if (element.fontName == null)
-//			GUI.graphics.setFont(GUI.getFont("primary"));
-//		else
-//			GUI.graphics.setFont(GUI.getFont(element.fontName));
+		if (GUI.getFont("editorFont") != null)
+			GUI.graphics.setFont(GUI.getFont("editorFont"));
+		else
+			GUI.graphics.setFont(GUI.getFont("primary"));
 		
 		GUI.graphics.setColor(GUI.getColor("text"));
 		
@@ -176,6 +263,7 @@ public class TextBoxEditable extends UIElement {
 		}
 		
 		//drawing cursor
+		//element.cursorPos.y = ((GUI.window.mousePosition.y - element.getY()) / GUI.graphics.getTextLineHeight());
 		if (element.cursorPos.x > -1)
 			GUI.graphics.fillRect(
 					element.getX() + GUI.graphics.getTextSize(element.contents.get(element.cursorPos.y).substring(0, element.cursorPos.x)).width,

@@ -154,6 +154,22 @@ public class GUI {
 			EventBus.broadcast(str);
 	}
 	
+	public static void click() {
+		if (GUI.hoveredElement != null) {
+			if (GUI.focusedElement != null)
+				GUI.focusedElement.focused = false;
+			
+			GUI.hoveredElement.click();
+			GUI.focusedElement = GUI.hoveredElement;
+			
+			GUI.focusedElement.focused = true;
+		}else{
+			if (GUI.focusedElement != null)
+				GUI.focusedElement.focused = false;
+			GUI.focusedElement = null;
+		}
+	}
+	
 	//drawing
 	public static void draw(Graphics g) {
 		g.drawImage(currentFrame, 0, 0, null);

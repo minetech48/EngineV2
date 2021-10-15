@@ -148,20 +148,8 @@ public class WindowWrapper extends Menu {
 					listener.mousePressed(e.getButton(), e.getX(), e.getY());
 				}
 				
-				if (GUI.hoveredElement != null) {
-					if (GUI.focusedElement != null)
-						GUI.focusedElement.focused = false;
-					
-					GUI.hoveredElement.click();
-					GUI.hoveredElement.click(e.getButton(), e.getX(), e.getY());
-					GUI.focusedElement = GUI.hoveredElement;
-					
-					GUI.focusedElement.focused = true;
-				}else{
-					if (GUI.focusedElement != null)
-						GUI.focusedElement.focused = false;
-					GUI.focusedElement = null;
-				}
+				GUI.click();
+				GUI.hoveredElement.click(e.getButton(), e.getX(), e.getY());
 			}
 			
 			@Override
