@@ -45,7 +45,10 @@ public class StringReader {
 		return current();
 	}
 	public char current() {
-		return string.charAt(idx);
+		if (idx < string.length())
+			return string.charAt(idx);
+		else
+			return ' ';
 	}
 	
 	public void goTo(int i) {
