@@ -7,12 +7,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.luaj.vm2.LuaValue;
 
@@ -141,7 +136,7 @@ public class GUI {
 		for (Menu menu : menus.values()) {
 			if (menu == null) continue;
 			
-			menu.allignElements();
+			menu.alignElements();
 		}
 	}
 	
@@ -191,14 +186,32 @@ public class GUI {
 	
 	//events
 	public static void loadMenu(String menuName) {
-		try {
-			menus.put(menuName, (Menu)
-					Johnson.deserialize(FileIO.toString(FileIO.getFile("gui/menus/" + menuName + ".john"))));
-		} catch (FileNotFoundException e) {
+		//getting menu file
+		File menuFile = FileIO.getFile("gui/menus/" + menuName + ".john");
+		
+		if (!menuFile.exists()) {
+			Logger.err("Attempt to load menu failed: file not found");
 			return;
 		}
 		
-		menus.get(menuName).allignElements();
+		
+		//reading menu file
+		ArrayList<Object> johnsonList;
+		try {
+			johnsonList = Johnson.deserializeList(menuFile);
+		} catch (FileNotFoundException e) {
+			Logger.log(e); //should never be called
+			return;
+		}
+		
+		//creating menu
+		menus.put(menuName, new Menu(menuName));
+		for (Object obj : johnsonList) {
+			menus.get(menuName).addElement((UIElement) obj);
+		}
+		
+		window.addElement(menus.get(menuName));
+		menus.get(menuName).alignElements();
 	}
 	
 	public static void mouseMoved(Point mousePos) {

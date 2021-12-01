@@ -34,6 +34,10 @@ public class StringReader {
 		return idx < max;
 	}
 	
+	public int getIndex() {
+		return idx;
+	}
+	
 	//methods
 	
 	public char next() {

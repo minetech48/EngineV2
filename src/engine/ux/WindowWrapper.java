@@ -22,9 +22,10 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import engine.core.EventBus;
+import engine.ux.UIElements.Container;
 import engine.ux.UIElements.Menu;
 
-public class WindowWrapper extends Menu {
+public class WindowWrapper extends Container {
 	
 	protected JFrame frame;
 	protected JPanel panel;

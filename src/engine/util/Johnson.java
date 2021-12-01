@@ -1,22 +1,22 @@
 package engine.util;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.AbstractList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
+import java.util.regex.Matcher;
 
 import engine.core.Logger;
+import engine.util.vector.Vec2i;
+import jdk.nashorn.internal.runtime.regexp.joni.Regex;
+import org.luaj.vm2.ast.Str;
 
 public class Johnson {
 	
-	static Map<String, String> classPaths = new HashMap<>();
-	static Map<String, String> independantClasses = new HashMap<>();
-	static Map<String, String> superclassNames = new HashMap<>();
+	static Set<String> classPaths = new HashSet<>();
+	static Map<String, String> independentClasses = new HashMap<>();
 	static {
 		addDeserializablePath("GUI", "engine.ux.UIElements");
-		setSuperclass("GUI", "UIElement");
 		
 		//addDeserializableClass("Menu", "engine.ux.UIElements.Menu");
 		addDeserializableClass("ManagedGridLayout", "engine.ux.layouts.ManagedGridLayout");
@@ -24,113 +24,46 @@ public class Johnson {
 	}
 	
 	public static void addDeserializablePath(String name, String path) {
-		classPaths.put(name, path + ".");
+		classPaths.add(path + ".");
 	}
 	public static void addDeserializableClass(String name, String path) {
-		independantClasses.put(name, path);
+		independentClasses.put(name, path);
 	}
-	public static void setSuperclass(String pathName, String className) {
-		superclassNames.put(classPaths.get(pathName), className);
+	
+	public static Object deserialize(File file) throws FileNotFoundException {
+		DeserializationEvent dEvent = new DeserializationEvent(file);
 		
+		return dEvent.next();
 	}
 	
 	public static Object deserialize(String string) {
-		//removing whitespace and comments
-		string = string.replaceAll("(\n|\t|\\s)", "");
+		DeserializationEvent dEvent = new DeserializationEvent(string);
 		
-		StringReader reader = new StringReader(string);
-		String classPath = classPaths.get(reader.advanceTo(';'));
-		
-		Stack<Object> currentObjects = new Stack<>();
-		currentObjects.ensureCapacity(4);
-		Stack<Object> values = new Stack<>();
-		Stack<String> fields = new Stack<>();
-		values.ensureCapacity(4);
-		fields.ensureCapacity(4);
-		
-		StringBuilder builder = null;
-		
-		int scope = 0;
-		
-		while (reader.hasNext()) {
-			//First switch block
-			switch (reader.next()) {
-			case '#'://Comments
-				reader.advanceTo('#');
-				continue;
-			case '{':
-				scope++;
-				currentObjects.add(createObject(classPath, reader));
-				reader.next();
-				continue;
-			case '\"':
-				currentObjects.push(reader.advanceTo('\"'));
-				scope++;
-			case '}':
-				scope--;
-				Object obj = currentObjects.pop();
-				
-				if (currentObjects.size() == 0) {
-					return obj;
-				}else{
-					if (currentObjects.peek().getClass().equals(LinkedList.class)) {
-						((LinkedList<Object>) currentObjects.peek()).add(obj);
-						continue;
-					}else
-						setField(currentObjects.peek(), fields.pop(), obj);
-				}
-				continue;
-			
-			case ']':
-				Object list = currentObjects.pop();
-				setField(currentObjects.peek(), fields.pop(), list);
-				continue;
-			
-			case ',':
-				continue;
-			
-			default:
-				reader.previous();
-				break;
-			}
-			
-			if (currentObjects.peek().getClass().equals(LinkedList.class)) {
-				String[] split = reader.advanceTo(']').split(",");
-				LinkedList<Object> list = ((LinkedList<Object>) currentObjects.peek());
-				
-				for (String s : split)
-					list.add(s);
-				
-				reader.previous();
-				continue;
-			}
-			
-			//getting field name
-			fields.add(reader.advanceTo(':'));
-			
-			//second switch block (this one tests for a array value
-			switch (reader.next()) {
-			case '[':
-				currentObjects.add(new LinkedList<Object>());
-				continue;
-			case '{':
-				reader.previous();
-				continue;
-			default:
-				reader.previous();
-				break;
-			}
-			
-			//setting the variable(field)
-			if (values.size() < scope)
-				values.add(reader.advanceTo(';'));
-			setField(currentObjects.peek(), fields.pop(), values.pop());
-		}
-		
-		return null;
+		return dEvent.next();
 	}
 	
-	private static void setField(Object obj, String field, Object value) {
+	public static ArrayList<Object> deserializeList(File file) throws FileNotFoundException {
+		return deserializeList(new DeserializationEvent(file));
+	}
+	public static ArrayList<Object> deserializeList(String string) {
+		return deserializeList(new DeserializationEvent(string));
+	}
+	
+	public static ArrayList<Object> deserializeList(DeserializationEvent dEvent) {
+		ArrayList<Object> objectList = new ArrayList<>();
+		
+		while (dEvent.reader.hasNext()) {
+			objectList.add(dEvent.next());
+			
+			if (objectList.get(objectList.size()-1) == null) {
+				return objectList;
+			}
+		}
+		
+		return objectList;
+	}
+	
+	static void setField(Object obj, String field, Object value) throws Exception {
 		try {
 			//System.out.println(currentObjects.peek() + ": <" + fields.peek() + ", " + values.peek()+ ">:");
 			Class<?> clss = obj.getClass();
@@ -148,9 +81,18 @@ public class Johnson {
 				valueClass = value.getClass();
 			
 			try {
-				clss
-				.getField(field)
-				.set(obj, value);
+				if (value.getClass().equals(String.class) && ((String) value).equalsIgnoreCase("true"))
+					clss
+							.getField(field)
+							.set(obj, true);
+				else if (value.getClass().equals(String.class) && ((String) value).equalsIgnoreCase("false"))
+					clss
+							.getField(field)
+							.set(obj, false);
+				else
+					clss
+					.getField(field)
+					.set(obj, value);
 			}catch (IllegalAccessException | NoSuchFieldException e) {
 				try {
 					clss
@@ -164,21 +106,32 @@ public class Johnson {
 			}
 		}catch (InvocationTargetException e) {
 			Logger.logException(e.getCause());
-		}catch (IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException e) {
-			Logger.logException(e);
+			
+		}catch(NoSuchMethodException e) {
+			Logger.err("Johnson Error: " + e.getClass().getName());
+			Logger.err("\tMethod not found in class:");
+			Logger.err("\t\tMethod:\tset" + field.substring(0, 1).toUpperCase() + field.substring(1) + "(" + value.getClass().getName() + ")");
+			Logger.err("\t\tClass:\t" + obj.getClass().getSimpleName());
+			
+			throw new JohnsonException("Method not found");
 		}
 	}
 	
-	private static Object createObject(String classPath, StringReader reader) {
+	static Object createObject(StringReader reader) throws Exception{
 		String typeName = reader.advanceTo('(');
 		
 		try {
-			Class<?> clss;
+			Class<?> clss = null;
 			
-			try {
-				clss = Class.forName(classPath + typeName);
-			} catch( ClassNotFoundException e ) {
-				clss = Class.forName(independantClasses.get(typeName));
+			for (String classPath : classPaths) {
+				try {
+					clss = Class.forName(classPath + typeName);
+					break;
+				} catch(ClassNotFoundException ignored) {}
+			}
+			
+			if (clss == null) {
+				clss = Class.forName(independentClasses.get(typeName));
 			}
 			
 			return clss
@@ -188,8 +141,182 @@ public class Johnson {
 		}catch (InvocationTargetException e) {
 			Logger.logException(e.getCause());
 		}catch (NoSuchMethodException | SecurityException | ClassNotFoundException | IllegalAccessException | IllegalArgumentException | InstantiationException e) {
-			Logger.logException(e);
+			throw e;
 		}
 		return null;
+	}
+}
+
+class DeserializationEvent {
+	
+	File fileSource;
+	String source;
+	
+	StringReader reader;
+	
+	Stack<Object> currentObjects = new Stack<>();
+	Stack<Object> values = new Stack<>();
+	Stack<String> fields = new Stack<>();
+	
+	public DeserializationEvent(File fileSource) throws FileNotFoundException {
+		this(FileIO.toString(fileSource));
+		
+		this.fileSource = fileSource;
+	}
+	
+	public DeserializationEvent(String source) {
+		this.source = source;
+		//removing whitespace and comments
+		source = source.replaceAll("(\\s)", "");
+		
+		reader = new StringReader(source);
+		//String classPath = classPaths.get(reader.advanceTo(';'));
+	}
+	
+	public Object next() {
+		try {
+			return start();
+		}catch(Exception e) {
+			if (e.getClass().equals(JohnsonException.class)) {
+				if (fileSource != null)
+					Logger.err("\tFrom: " + fileSource.getPath() + ":" +  + getReaderLocation().y);
+				else
+					Logger.err("\tFrom <File Null>:" + getReaderLocation().y);
+				
+				return null;
+			}
+			
+			Logger.err("Johnson Error: " + e.getClass().getName());
+			
+			
+			switch (e.getClass().getSimpleName()) {
+//				case "NoSuchMethodException":
+//					Logger.err("\tMethod not found:");
+//					Logger.err("\tMethod: ");
+//					Logger.err("\tClass: ");
+//
+//					Logger.err("\t" + fields.peek());
+//					Logger.err("\t" + values.peek());
+//					break;
+				
+				default:
+					Logger.log(e);
+			}
+		}
+		
+		return null;
+	}
+	
+	private Object start() throws Exception {
+		
+		StringBuilder builder = null;
+		
+		int scope = 0;
+		
+		while (reader.hasNext()) {
+			//First switch block
+			switch (reader.next()) {
+				case '#'://Comments
+					reader.advanceTo('#');
+					continue;
+				case '{':
+					scope++;
+					currentObjects.add(Johnson.createObject(reader));
+					reader.next();
+					continue;
+				case '\"':
+					currentObjects.push(reader.advanceTo('\"'));
+					scope++;
+				case '}':
+					scope--;
+					Object obj = currentObjects.pop();
+					
+					if (currentObjects.size() == 0) {
+						return obj;
+					}else{
+						if (currentObjects.peek().getClass().equals(LinkedList.class)) {
+							((LinkedList<Object>) currentObjects.peek()).add(obj);
+							continue;
+						}else
+							Johnson.setField(currentObjects.peek(), fields.pop(), obj);
+					}
+					continue;
+				
+				case ']':
+					Object list = currentObjects.pop();
+					Johnson.setField(currentObjects.peek(), fields.pop(), list);
+					
+					if (!reader.hasNext())
+						return currentObjects.pop();
+					continue;
+				
+				case ',':
+					continue;
+				
+				default:
+					reader.previous();
+					break;
+			}
+			
+			if (currentObjects.peek().getClass().equals(LinkedList.class)) {
+				String[] split = reader.advanceTo(']').split(",");
+				LinkedList<Object> list = ((LinkedList<Object>) currentObjects.peek());
+				
+				for (String s : split)
+					list.add(s);
+				
+				reader.previous();
+				continue;
+			}
+			
+			//getting field name
+			fields.add(reader.advanceTo(':'));//TODO: "booleanField;" = "booleanField:true"
+			
+			//second switch block (this one tests for an array value)
+			switch (reader.next()) {
+				case '[':
+					currentObjects.add(new LinkedList<Object>());
+					continue;
+				case '{':
+					reader.previous();
+					continue;
+				default:
+					reader.previous();
+					break;
+			}
+			
+			//setting the variable(field)
+			if (values.size() < scope)
+				values.add(reader.advanceTo(';'));
+			Johnson.setField(currentObjects.peek(), fields.pop(), values.pop());
+		}
+		
+		return null;
+	}
+	
+	public Vec2i getReaderLocation() {
+		StringReader sweeper = new StringReader(source);
+		
+		Vec2i charPos = new Vec2i();
+		
+		for (int i = 0; i < reader.getIndex(); i++) {
+			if (Character.isWhitespace(sweeper.next()))
+				i--;
+			
+			charPos.x++;
+			if (sweeper.current() == '\n') {
+				charPos.x = 0;
+				charPos.y++;
+			}
+		}
+		
+		return charPos;
+	}
+}
+
+class JohnsonException extends Exception {
+	
+	public JohnsonException(String message) {
+		super(message);
 	}
 }

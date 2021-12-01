@@ -9,6 +9,7 @@ import engine.util.FileIO;
 public class Logger {
 	
 	public static boolean eventLogging = true;
+	public static final String ERROR_PREFIX = "<ERR>: ";
 	
 	static File logFile;
 	static FileWriter writer;
@@ -26,11 +27,11 @@ public class Logger {
 	}
 	public static void logException(Throwable t) {
 		System.err.println(t);
-		logToFile(t.toString());
+		logToFile(ERROR_PREFIX + t.toString());
 		
 		for (StackTraceElement el : t.getStackTrace()) {
 			System.err.println(el);
-			logToFile(el.toString());
+			logToFile(ERROR_PREFIX + el.toString());
 		}
 	}
 //	public static void logException(LuaError error) {
@@ -43,6 +44,11 @@ public class Logger {
 		logToFile(str);
 		
 		System.out.println(str);
+	}
+	
+	public static void err(String str) {
+		System.err.println(str);
+		logToFile(ERROR_PREFIX + str);
 	}
 	
 	public static void logToFile(String str) {

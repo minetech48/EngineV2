@@ -29,7 +29,7 @@ public class EventBus {
 	protected static boolean running = true;
 	public static boolean isRunning() {return running;}
 	
-	//broadcating
+	//broadcasting
 	public static void broadcast(String str) {
 		if (str.startsWith("$lua")) {
 			ScriptHandler.execute(str.substring(4));

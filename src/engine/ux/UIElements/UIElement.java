@@ -3,6 +3,7 @@ package engine.ux.UIElements;
 import java.awt.Color;
 import java.awt.Point;
 
+import engine.core.Logger;
 import engine.ux.GUI;
 import engine.util.vector.Vec4i;
 
@@ -21,7 +22,7 @@ public class UIElement {
 		ELEMENT
 	}
 	
-	public UIElement parent;
+	public Container parent;
 	public String name;
 	
 	public Vec4i layoutBounds, bounds;
@@ -91,82 +92,8 @@ public class UIElement {
 		return true;
 	}
 	
-	private int getConstraintX(UIElement parent) {
-		switch(constraint) {
-		case PARENT:
-			return parent.getWidth();
-		case CENTER:
-			return parent.getWidth()/2;
-		case ELEMENT:
-			return 0;
-		}
-		return 0;
-	}
-	public void align(Menu parent) {
-		switch (alignmentX) {
-		case LEFT:
-			bounds.x = layoutBounds.x;
-			bounds.z = layoutBounds.z > 0 ?
-					layoutBounds.z :
-						getConstraintX(parent) + layoutBounds.z - bounds.x;
-			break;
-			
-		case RIGHT:
-			bounds.x = parent.getWidth() - layoutBounds.x;
-			bounds.z = layoutBounds.z > 0 ?
-					layoutBounds.z :
-					parent.getWidth() - layoutBounds.z - bounds.x;
-			
-			if (layoutBounds.z > 0) {
-				bounds.z = layoutBounds.z;
-				bounds.x = parent.getWidth() - bounds.z - layoutBounds.x;
-			}else{
-				bounds.x = parent.getWidth() - getConstraintX(parent) -layoutBounds.z;
-				bounds.z = getConstraintX(parent) + layoutBounds.z - layoutBounds.x;
-			}
-			break;
-			
-		case CENTER:
-			bounds.x = parent.getWidth()/2 + layoutBounds.x;
-			bounds.z = layoutBounds.z;
-			break;
-			
-		default:
-			//GUI.definitionError();
-			System.err.println("GUI definition error: " + name);
-			break;
-		}
-		
-		switch (alignmentY) {
-		case TOP:
-			bounds.y = layoutBounds.y;
-			bounds.w = layoutBounds.w > 0 ?
-					layoutBounds.w :
-					parent.getHeight() + layoutBounds.w - bounds.y;
-			break;
-		case BOTTOM:
-			bounds.y = getHeight() - layoutBounds.y;
-			bounds.w = layoutBounds.w > 0 ?
-					layoutBounds.w :
-					parent.getHeight() - layoutBounds.w - bounds.y;
-			
-			if (layoutBounds.w > 0) {
-				bounds.w = layoutBounds.w;
-				bounds.y = parent.getHeight() - bounds.w - layoutBounds.y;
-			}else{
-				bounds.y = -layoutBounds.w;
-				bounds.w = parent.getHeight() + layoutBounds.w - layoutBounds.y;
-			}
-			break;
-		case CENTER:
-			bounds.y = parent.getHeight()/2 + layoutBounds.y;
-			bounds.w = layoutBounds.w;
-			break;
-		default:
-			//GUI.definitionError();
-			System.err.println("GUI definition error: " + name);
-		}
-	}
+	public void align() {}
+	
 	
 	//checks
 	public UIElement checkHover(Point p) {
