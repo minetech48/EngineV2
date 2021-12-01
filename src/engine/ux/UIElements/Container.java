@@ -149,8 +149,8 @@ public class Container extends UIElement {
 		}
 	}
 	
-	private int getConstraintX() {
-		switch(constraint) {
+	private int getConstraintX(UIElement element) {
+		switch(element.constraint) {
 			case PARENT:
 				return getWidth();
 			case CENTER:
@@ -167,7 +167,7 @@ public class Container extends UIElement {
 				element.bounds.x = element.layoutBounds.x;
 				element.bounds.z = element.layoutBounds.z > 0 ?
 						element.layoutBounds.z :
-						getConstraintX() + element.layoutBounds.z - element.bounds.x;
+						getConstraintX(element) + element.layoutBounds.z - element.bounds.x;
 				break;
 			
 			case RIGHT:
@@ -180,8 +180,8 @@ public class Container extends UIElement {
 					element.bounds.z = element.layoutBounds.z;
 					element.bounds.x = element.parent.getWidth() - element.bounds.z - element.layoutBounds.x;
 				}else{
-					element.bounds.x = element.parent.getWidth() - getConstraintX() -element.layoutBounds.z;
-					element.bounds.z = getConstraintX() + element.layoutBounds.z - element.layoutBounds.x;
+					element.bounds.x = element.parent.getWidth() - getConstraintX(element) -element.layoutBounds.z;
+					element.bounds.z = getConstraintX(element) + element.layoutBounds.z - element.layoutBounds.x;
 				}
 				break;
 			
