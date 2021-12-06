@@ -78,6 +78,8 @@ public class Container extends UIElement {
 	}
 	
 	public UIElement addElement(UIElement element) {
+		if (element == null) return null;
+		
 		elementMap.put(element.getName(), element);
 		elements.add(element);
 		

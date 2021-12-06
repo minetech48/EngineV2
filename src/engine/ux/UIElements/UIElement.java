@@ -22,32 +22,24 @@ public class UIElement {
 		ELEMENT
 	}
 	
-	public Container parent;
+	public String container; //container name
+	transient public Container parent;
 	public String name;
 	
-	public Vec4i layoutBounds, bounds;
+	public Vec4i layoutBounds;
+	transient public Vec4i bounds;
+	
 	public Alignment alignmentX = Alignment.LEFT, alignmentY = Alignment.TOP;
 	protected Constraints constraint = Constraints.PARENT;
 	
-	public boolean highlighted, focused, active;
+	transient public boolean highlighted, focused, active;
 	
 	protected String nextElement;
 	
 	public UIElement(String[] args) {
 		this(args[0]);
 		
-		if (args.length > 4) {
-			layoutBounds.x = Integer.parseInt(args[1]);
-			layoutBounds.y = Integer.parseInt(args[2]);
-			layoutBounds.z = Integer.parseInt(args[3]);
-			layoutBounds.w = Integer.parseInt(args[4]);
-		}else if (args.length > 3) {
-			name = null;
-			layoutBounds.x = Integer.parseInt(args[0]);
-			layoutBounds.y = Integer.parseInt(args[1]);
-			layoutBounds.z = Integer.parseInt(args[2]);
-			layoutBounds.w = Integer.parseInt(args[3]);
-		}
+		setLayoutBounds(args);
 	}
 	public UIElement(String name) {
 		this(name, 0, 0, 0, 0);
@@ -119,6 +111,21 @@ public class UIElement {
 			bounds.y = y;
 			bounds.z = width;
 			bounds.w = height;
+		}
+	}
+	
+	public void setLayoutBounds(String[] args) {
+		if (args.length > 4) {
+			layoutBounds.x = Integer.parseInt(args[1]);
+			layoutBounds.y = Integer.parseInt(args[2]);
+			layoutBounds.z = Integer.parseInt(args[3]);
+			layoutBounds.w = Integer.parseInt(args[4]);
+		}else if (args.length > 3) {
+			name = null;
+			layoutBounds.x = Integer.parseInt(args[0]);
+			layoutBounds.y = Integer.parseInt(args[1]);
+			layoutBounds.z = Integer.parseInt(args[2]);
+			layoutBounds.w = Integer.parseInt(args[3]);
 		}
 	}
 	

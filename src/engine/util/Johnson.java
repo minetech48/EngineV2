@@ -178,10 +178,7 @@ class DeserializationEvent {
 			return start();
 		}catch(Exception e) {
 			if (e.getClass().equals(JohnsonException.class)) {
-				if (fileSource != null)
-					Logger.err("\tFrom: " + fileSource.getPath() + ":" +  + getReaderLocation().y);
-				else
-					Logger.err("\tFrom <File Null>:" + getReaderLocation().y);
+				logLocation();
 				
 				return null;
 			}
@@ -190,21 +187,25 @@ class DeserializationEvent {
 			
 			
 			switch (e.getClass().getSimpleName()) {
-//				case "NoSuchMethodException":
-//					Logger.err("\tMethod not found:");
-//					Logger.err("\tMethod: ");
-//					Logger.err("\tClass: ");
-//
-//					Logger.err("\t" + fields.peek());
-//					Logger.err("\t" + values.peek());
-//					break;
+				case "StringIndexOutOfBoundsException":
+					Logger.err("\tEOF Exception: " + e.getMessage());
+					break;
 				
 				default:
 					Logger.log(e);
 			}
+			
+			logLocation();
 		}
 		
 		return null;
+	}
+	
+	private void logLocation() {
+		if (fileSource != null)
+			Logger.err("\tFrom: " + fileSource.getPath() + ":" +  + getReaderLocation().y);
+		else
+			Logger.err("\tFrom <File Null>:" + getReaderLocation().y);
 	}
 	
 	private Object start() throws Exception {

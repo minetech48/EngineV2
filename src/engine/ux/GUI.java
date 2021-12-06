@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
+import engine.ux.UIElements.Container;
 import org.luaj.vm2.LuaValue;
 
 import engine.core.Event;
@@ -205,13 +206,28 @@ public class GUI {
 		}
 		
 		//creating menu
-		menus.put(menuName, new Menu(menuName));
+		Menu menu;
+		if (johnsonList.get(0).getClass().equals(Menu.class)){
+			menu = (Menu) johnsonList.get(0);
+			johnsonList.remove(0);
+		}
+		else
+			menu = new Menu(menuName);
+		menus.put(menuName, menu);
+		
+		//adding elements to menu
+		UIElement element;
 		for (Object obj : johnsonList) {
-			menus.get(menuName).addElement((UIElement) obj);
+			element = (UIElement) obj;
+			
+			if (element.container != null) {
+				((Container) getElement(menuName + "." + element.container)).addElement(element);
+			}else
+				menu.addElement(element);
 		}
 		
-		window.addElement(menus.get(menuName));
-		menus.get(menuName).alignElements();
+		window.addElement(menu);
+		menu.alignElements();
 	}
 	
 	public static void mouseMoved(Point mousePos) {
